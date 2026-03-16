@@ -1,0 +1,15 @@
+# ============================================================
+#  CekRank - Plugin Konfigurasi
+#  https://github.com/Zxcoders/plugin-cekrank-luckperms
+# ============================================================
+
+messages:
+  prefix: "&8[&bCekRank&8] "
+  no_permission: "&cAnda tidak memiliki izin untuk melakukan ini."
+  usage: "&eGunakan: /checkrank <player>"
+  player_not_found: "&cPemain &e{player} &ctidak ditemukan di database LuckPerms."
+  result_online: "&aPemain &e{player} &a(Online) memiliki rank: &b{rank}"
+  result_offline: "&7Pemain &e{player} &7(Offline) memiliki rank: &b{rank}"
+  luckperms_not_found: "&cLuckPerms tidak terdeteksi. Pastikan LuckPerms terpasang."
+  loading: "&7Memuat data rank untuk &e{player}&7..."
+  error: "&cTerjadi kesalahan saat mengambil data. Coba lagi nanti."

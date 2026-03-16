@@ -1,0 +1,26 @@
+name: CekRank
+version: '${project.version}'
+main: id.zxcoders.cekrank.CekRankPlugin
+api-version: '1.20'
+description: Plugin untuk memeriksa rank pemain (online/offline) via LuckPerms
+authors: [ Zxcoders ]
+website: https://github.com/Zxcoders/plugin-cekrank-luckperms
+
+depend:
+  - LuckPerms
+
+commands:
+  checkrank:
+    description: Memeriksa rank seorang pemain (online/offline)
+    usage: /checkrank <player>
+    aliases:
+      - cekrank
+      - rankcheck
+
+permissions:
+  cekrank.use:
+    description: Izin untuk menggunakan perintah /checkrank
+    default: op
+  cekrank.others:
+    description: Izin untuk memeriksa rank pemain lain
+    default: op
