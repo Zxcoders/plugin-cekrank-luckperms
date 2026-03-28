@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -54,23 +55,27 @@ public class CheckRankCommand implements CommandExecutor, TabCompleter {
         }
 
         // Ambil data rank secara asinkron agar tidak memblokir thread utama
-        luckPermsUtil.getPrimaryRank(targetName).thenAcceptAsync(optionalRank -> {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (optionalRank.isEmpty()) {
-                    String notFoundMsg = getMsg("player_not_found")
-                            .replace("{player}", targetName);
-                    sender.sendMessage(colorize(getPrefix() + notFoundMsg));
-                    return;
-                }
-
-                String rank = optionalRank.get();
-                sender.sendMessage(rank);
+        if (sender instanceof Player) {
+            // Untuk pemain: tetap async agar tidak memblokir main thread
+            luckPermsUtil.getPrimaryRank(targetName).thenAcceptAsync(optionalRank -> {
+                Bukkit.getScheduler().runTask(plugin, () -> sendRankResult(sender, targetName, optionalRank));
+            }).exceptionally(ex -> {
+                plugin.getLogger().warning("Gagal mengambil rank untuk " + targetName + ": " + ex.getMessage());
+                Bukkit.getScheduler().runTask(plugin, () -> sendMessage(sender, "error"));
+                return null;
             });
-        }).exceptionally(ex -> {
-            plugin.getLogger().warning("Gagal mengambil rank untuk " + targetName + ": " + ex.getMessage());
-            Bukkit.getScheduler().runTask(plugin, () -> sendMessage(sender, "error"));
-            return null;
-        });
+        } else {
+            // Untuk RCON/console: blokir secara sinkron agar output terkirim
+            // sebelum onCommand selesai sehingga RCON dapat menangkap responsnya
+            try {
+                Optional<String> optionalRank = luckPermsUtil.getPrimaryRank(targetName)
+                        .get(5, TimeUnit.SECONDS);
+                sendRankResult(sender, targetName, optionalRank);
+            } catch (Exception ex) {
+                plugin.getLogger().warning("Gagal mengambil rank untuk " + targetName + ": " + ex.getMessage());
+                sendMessage(sender, "error");
+            }
+        }
 
         return true;
     }
@@ -96,6 +101,16 @@ public class CheckRankCommand implements CommandExecutor, TabCompleter {
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    private void sendRankResult(CommandSender sender, String targetName, Optional<String> optionalRank) {
+        if (optionalRank.isEmpty()) {
+            String notFoundMsg = getMsg("player_not_found")
+                    .replace("{player}", targetName);
+            sender.sendMessage(colorize(getPrefix() + notFoundMsg));
+            return;
+        }
+        sender.sendMessage(optionalRank.get());
+    }
 
     private String getPrefix() {
         return plugin.getConfig().getString("messages.prefix", "&8[&bCekRank&8] ");
