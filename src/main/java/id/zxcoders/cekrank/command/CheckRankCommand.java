@@ -53,10 +53,6 @@ public class CheckRankCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        // Tampilkan pesan loading
-        String loadingMsg = getMsg("loading").replace("{player}", targetName);
-        sender.sendMessage(colorize(getPrefix() + loadingMsg));
-
         // Ambil data rank secara asinkron agar tidak memblokir thread utama
         luckPermsUtil.getPrimaryRank(targetName).thenAcceptAsync(optionalRank -> {
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -68,13 +64,7 @@ public class CheckRankCommand implements CommandExecutor, TabCompleter {
                 }
 
                 String rank = optionalRank.get();
-                boolean online = luckPermsUtil.isOnline(targetName);
-                String msgKey = online ? "result_online" : "result_offline";
-                String resultMsg = getMsg(msgKey)
-                        .replace("{player}", targetName)
-                        .replace("{rank}", rank);
-
-                sender.sendMessage(colorize(getPrefix() + resultMsg));
+                sender.sendMessage(rank);
             });
         }).exceptionally(ex -> {
             plugin.getLogger().warning("Gagal mengambil rank untuk " + targetName + ": " + ex.getMessage());
